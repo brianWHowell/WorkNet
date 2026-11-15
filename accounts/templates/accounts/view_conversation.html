@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-comments me-2"></i>Conversation with {{ template_data.other_participant.username }}
+                </h2>
+                <a href="{% url 'accounts.list_conversations' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Messages
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 col-lg-8 mx-auto">
+            <!-- Messages Display -->
+            <div class="card mb-4" style="max-height: 500px; overflow-y: auto;">
+                <div class="card-body">
+                    {% if template_data.messages %}
+                        {% for message in template_data.messages %}
+                        <div class="mb-4 {% if message.sender == user %}text-end{% endif %}">
+                            <div class="d-inline-block p-3 rounded {% if message.sender == user %}bg-primary text-white{% else %}bg-light{% endif %}" style="max-width: 70%;">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <strong>
+                                        {% if message.sender == user %}
+                                            You
+                                        {% else %}
+                                            {{ message.sender.get_full_name|default:message.sender.username }}
+                                        {% endif %}
+                                    </strong>
+                                    <small class="ms-3">{{ message.created_at|date:"M d, Y g:i A" }}</small>
+                                </div>
+                                <p class="mb-0">{{ message.body|linebreaks }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">No messages in this conversation yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Message Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Send Message</h5>
+                </div>
+                <div class="card-body">
+                    {% if user.account_type == 'seeker' and not template_data.messages %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Job seekers can only reply to messages from recruiters. Once a recruiter sends you a message, you'll be able to reply here.
+                        </div>
+                    {% else %}
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="{{ template_data.form.body.id_for_label }}" class="form-label">Message</label>
+                                {{ template_data.form.body }}
+                                {% if template_data.form.body.errors %}
+                                    <div class="text-danger">{{ template_data.form.body.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>Send Message
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

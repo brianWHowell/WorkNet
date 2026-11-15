@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow-md border-0">
+        <div class="card-header text-center py-4">
+          <img src="{% static 'img/logo.svg' %}" alt="WorkNet Logo" height="60" class="mb-3">
+          <h2 class="mb-0 text-white">Create Account</h2>
+          <p class="text-white-50 mb-0 small">Join WorkNet today</p>
+        </div>
+        <div class="card-body p-4">
+          <form method="POST">
+            {% csrf_token %}
+            {% if template_data.form.non_field_errors %}
+              <div class="alert alert-danger shadow-sm">
+                {{ template_data.form.non_field_errors }}
+              </div>
+            {% endif %}
+            
+            {% for field in template_data.form %}
+              <div class="mb-3">
+                <label for="{{ field.id_for_label }}" class="form-label">
+                  {% if field.name == 'username' %}
+                    <i class="fas fa-user me-2 text-primary"></i>
+                  {% elif field.name == 'email' %}
+                    <i class="fas fa-envelope me-2 text-primary"></i>
+                  {% elif 'password' in field.name %}
+                    <i class="fas fa-lock me-2 text-primary"></i>
+                  {% elif field.name == 'account_type' %}
+                    <i class="fas fa-user-tag me-2 text-primary"></i>
+                  {% else %}
+                    <i class="fas fa-edit me-2 text-primary"></i>
+                  {% endif %}
+                  {{ field.label }}
+                </label>
+                {{ field }}
+                {% if field.help_text %}
+                  <small class="form-text text-muted">{{ field.help_text }}</small>
+                {% endif %}
+                {% if field.errors %}
+                  <div class="text-danger small mt-1">
+                    {% for error in field.errors %}
+                      <div><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</div>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+            
+            <div class="d-grid mt-4">
+              <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-user-plus me-2"></i>Sign Up
+              </button>
+            </div>
+          </form>
+          <hr class="my-4">
+          <div class="text-center">
+            <p class="mb-0 text-muted small">Already have an account?</p>
+            <a href="{% url 'accounts.login' %}" class="btn btn-outline-primary btn-sm mt-2">
+              <i class="fas fa-sign-in-alt me-2"></i>Login
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

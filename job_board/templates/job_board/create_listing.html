@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container py-4">
+  <h2>Create Job Listing</h2>
+  <form method="post">
+    {% csrf_token %}
+    <div class="row">
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label for="{{ form.title.id_for_label }}" class="form-label">{{ form.title.label }}</label>
+          {{ form.title }}
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="mb-3 position-relative">
+          <label for="{{ form.location.id_for_label }}" class="form-label">{{ form.location.label }}</label>
+          {{ form.location }}
+          <!-- Hidden fields for coordinates -->
+          <input type="hidden" id="id_latitude" name="latitude" value="">
+          <input type="hidden" id="id_longitude" name="longitude" value="">
+          <!-- Autocomplete dropdown -->
+          <div id="cityAutocomplete" class="list-group position-absolute w-100" style="display: none; z-index: 1000; max-height: 300px; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="mb-3">
+      <label for="{{ form.salary.id_for_label }}" class="form-label">{{ form.salary.label }}</label>
+      {{ form.salary }}
+    </div>
+    
+    <div class="mb-3">
+      <label class="form-label">{{ form.skills.label }}</label>
+      <div class="skills-container" style="max-height: 200px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 0.375rem; padding: 0.5rem; background-color: #f8f9fa;">
+        {{ form.skills }}
+      </div>
+      <div class="form-text">Select the skills required for this position</div>
+    </div>
+    
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-check mb-3">
+          {{ form.is_remote }}
+          <label for="{{ form.is_remote.id_for_label }}" class="form-check-label">{{ form.is_remote.label }}</label>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-check mb-3">
+          {{ form.is_visa_offered }}
+          <label for="{{ form.is_visa_offered.id_for_label }}" class="form-check-label">{{ form.is_visa_offered.label }}</label>
+        </div>
+      </div>
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Create Job Listing</button>
+  </form>
+</div>
+
+<style>
+.skills-container .form-check {
+  margin-bottom: 0.5rem;
+}
+
+.skills-container .form-check-input {
+  margin-top: 0.25rem;
+}
+
+.skills-container .form-check-label {
+  font-size: 0.9rem;
+  margin-left: 0.5rem;
+}
+
+#cityAutocomplete .list-group-item {
+  cursor: pointer;
+  border: 1px solid #dee2e6;
+}
+
+#cityAutocomplete .list-group-item:hover {
+  background-color: #f8f9fa;
+}
+
+#cityAutocomplete .list-group-item.active {
+  background-color: #0d6efd;
+  color: white;
+}
+</style>
+
+<script src="{% static 'job_board/cities.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const locationInput = document.getElementById('id_location');
+    const latitudeInput = document.getElementById('id_latitude');
+    const longitudeInput = document.getElementById('id_longitude');
+    const autocompleteDiv = document.getElementById('cityAutocomplete');
+    let selectedIndex = -1;
+    let filteredCities = [];
+    
+    function filterCities(query) {
+        if (!query || query.length < 2) {
+            return [];
+        }
+        const lowerQuery = query.toLowerCase();
+        return CITIES_DATA.filter(city => 
+            city.name.toLowerCase().includes(lowerQuery)
+        ).slice(0, 10); // Limit to 10 results
+    }
+    
+    function showAutocomplete(cities) {
+        if (cities.length === 0) {
+            autocompleteDiv.style.display = 'none';
+            return;
+        }
+        
+        autocompleteDiv.innerHTML = '';
+        cities.forEach((city, index) => {
+            const item = document.createElement('a');
+            item.className = 'list-group-item list-group-item-action';
+            item.href = '#';
+            item.textContent = city.name;
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                selectCity(city);
+            });
+            item.addEventListener('mouseenter', function() {
+                selectedIndex = index;
+                updateHighlight();
+            });
+            autocompleteDiv.appendChild(item);
+        });
+        
+        autocompleteDiv.style.display = 'block';
+        selectedIndex = -1;
+    }
+    
+    function updateHighlight() {
+        const items = autocompleteDiv.querySelectorAll('.list-group-item');
+        items.forEach((item, index) => {
+            if (index === selectedIndex) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    }
+    
+    function selectCity(city) {
+        locationInput.value = city.name;
+        latitudeInput.value = city.lat;
+        longitudeInput.value = city.lng;
+        autocompleteDiv.style.display = 'none';
+        selectedIndex = -1;
+    }
+    
+    locationInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        filteredCities = filterCities(query);
+        showAutocomplete(filteredCities);
+    });
+    
+    locationInput.addEventListener('keydown', function(e) {
+        if (autocompleteDiv.style.display === 'none') return;
+        
+        const items = autocompleteDiv.querySelectorAll('.list-group-item');
+        
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+            updateHighlight();
+            items[selectedIndex].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedIndex = Math.max(selectedIndex - 1, -1);
+            updateHighlight();
+            if (selectedIndex >= 0) {
+                items[selectedIndex].scrollIntoView({ block: 'nearest' });
+            }
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (selectedIndex >= 0 && selectedIndex < filteredCities.length) {
+                selectCity(filteredCities[selectedIndex]);
+            } else if (filteredCities.length > 0) {
+                selectCity(filteredCities[0]);
+            }
+        } else if (e.key === 'Escape') {
+            autocompleteDiv.style.display = 'none';
+            selectedIndex = -1;
+        }
+    });
+    
+    // Close autocomplete when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!locationInput.contains(e.target) && !autocompleteDiv.contains(e.target)) {
+            autocompleteDiv.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock content %}

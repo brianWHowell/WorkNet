@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>{{ template_data.title }}</h2>
+        <div>
+            <button class="btn btn-outline-secondary me-2" onclick="markAllRead()">
+                <i class="fas fa-check-double me-1"></i>Mark All as Read
+            </button>
+            <a href="{% url 'accounts.search_candidates' %}" class="btn btn-primary">
+                <i class="fas fa-search me-1"></i>Back to Search
+            </a>
+        </div>
+    </div>
+    
+    {% if template_data.notifications %}
+    <div class="row">
+        {% for notification in template_data.notifications %}
+        <div class="col-md-6 mb-3">
+            <div class="card {% if not notification.is_read %}border-primary{% endif %}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0">
+                            {% if not notification.is_read %}
+                            <span class="badge bg-primary me-2">NEW</span>
+                            {% endif %}
+                            New Candidate Match
+                        </h5>
+                        <small class="text-muted">{{ notification.created_at|date:"M d, Y H:i" }}</small>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <strong>Candidate:</strong> {{ notification.candidate.username }}
+                    </div>
+                    
+                    <div class="mb-2">
+                        <strong>For Search:</strong> {{ notification.saved_search.name }}
+                    </div>
+                    
+                    <div class="mb-2">
+                        {% if notification.candidate.email %}
+                        <a href="mailto:{{ notification.candidate.email }}" class="btn btn-sm btn-outline-primary me-2">
+                            <i class="fas fa-envelope me-1"></i>Contact
+                        </a>
+                        {% endif %}
+                        
+                        {% if notification.candidate.location and not notification.candidate.hide_location %}
+                        <span class="badge bg-info">{{ notification.candidate.location }}</span>
+                        {% endif %}
+                        
+                        {% if not notification.candidate.hide_experience %}
+                        <span class="badge bg-info">{{ notification.candidate.years_of_experience }} years exp</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-success" onclick="markAsRead({{ notification.id }})">
+                            <i class="fas fa-check me-1"></i>Mark as Read
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-bell me-2"></i>
+        No notifications yet. When new candidates match your saved searches, you'll be notified here.
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function markAsRead(notificationId) {
+    fetch('{% url "accounts.mark_notification_read" 0 %}'.replace('0', notificationId), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to mark notification as read.');
+    });
+}
+
+function markAllRead() {
+    fetch('{% url "accounts.mark_all_notifications_read" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('All notifications marked as read!');
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to mark all notifications as read.');
+    });
+}
+</script>
+{% endblock %}
+

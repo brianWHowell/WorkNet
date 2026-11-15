@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">{{ template_data.title }}</h2>
+        <a href="{% url 'job_board.index' %}" class="btn btn-primary">
+          <i class="fas fa-search me-2"></i>Browse Jobs
+        </a>
+      </div>
+
+      {% if template_data.applications %}
+        <div class="row">
+          {% for application in template_data.applications %}
+            <div class="col-md-6 mb-4">
+              <div class="card h-100">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h5 class="card-title text-primary mb-0">{{ application.job_listing.title }}</h5>
+                    {% if application.status == 'applied' %}
+                      <span class="badge bg-primary">Applied</span>
+                    {% elif application.status == 'review' %}
+                      <span class="badge bg-warning">Review</span>
+                    {% elif application.status == 'interview' %}
+                      <span class="badge bg-info">Interview</span>
+                    {% elif application.status == 'offer' %}
+                      <span class="badge bg-success">Offer</span>
+                    {% elif application.status == 'closed' %}
+                      <span class="badge bg-secondary">Closed</span>
+                    {% endif %}
+                  </div>
+                  
+                  <div class="job-details mb-3">
+                    <div class="mb-2">
+                      <small class="text-muted">
+                        <i class="fas fa-building me-1"></i>
+                        <strong>Company:</strong> {{ application.job_listing.recruiter.username }}
+                      </small>
+                    </div>
+                    <div class="mb-2">
+                      <small class="text-muted">
+                        <i class="fas fa-map-marker-alt me-1"></i>
+                        <strong>Location:</strong> {{ application.job_listing.location }}
+                      </small>
+                    </div>
+                    <div class="mb-2">
+                      <small class="text-muted">
+                        <i class="fas fa-dollar-sign me-1"></i>
+                        <strong>Salary:</strong> ${{ application.job_listing.salary|floatformat:0 }}
+                      </small>
+                    </div>
+                    <div class="mb-2">
+                      <small class="text-muted">
+                        <i class="fas fa-calendar me-1"></i>
+                        <strong>Applied:</strong> {{ application.applied_at|date:"M d, Y" }}
+                      </small>
+                    </div>
+                    {% if application.updated_at != application.applied_at %}
+                      <div class="mb-2">
+                        <small class="text-muted">
+                          <i class="fas fa-clock me-1"></i>
+                          <strong>Last Updated:</strong> {{ application.updated_at|date:"M d, Y" }}
+                        </small>
+                      </div>
+                    {% endif %}
+                  </div>
+
+                  {% if application.application_message %}
+                    <div class="mb-3">
+                      <small class="text-muted">
+                        <strong>Your Message:</strong>
+                      </small>
+                      <p class="small text-muted mt-1">{{ application.application_message|truncatewords:20 }}</p>
+                    </div>
+                  {% endif %}
+
+                  <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                      <i class="fas fa-code me-1"></i>
+                      {{ application.job_listing.skills }}
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-5">
+          <div class="card">
+            <div class="card-body">
+              <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+              <h4 class="text-muted">No Applications Yet</h4>
+              <p class="text-muted mb-4">
+                You haven't applied to any jobs yet. Start browsing available positions and submit your applications!
+              </p>
+              <a href="{% url 'job_board.index' %}" class="btn btn-primary">
+                <i class="fas fa-search me-2"></i>Browse Jobs
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock content %}

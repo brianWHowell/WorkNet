@@ -1,0 +1,430 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>My Job Listings</h2>
+    <a href="{% url 'job_board.create_listing' %}" class="btn btn-primary">Create Job Listing</a>
+  </div>
+  <ul class="list-group">
+    {% for job_data in jobs_with_recommendations %}
+      <li class="list-group-item">
+        <div class="d-flex justify-content-between align-items-start">
+          <div class="flex-grow-1">
+            <h5>{{ job_data.job.title }}</h5>
+            <p><strong>Skills:</strong> {{ job_data.job.skills }}</p>
+            <p><strong>Location:</strong> {{ job_data.job.location }}</p>
+            <p><strong>Salary: $</strong>{{ job_data.job.salary }}</p>
+            {% if job_data.job.is_remote %}
+              <span class="badge custom-bg">Remote</span>
+            {% endif %}
+            {% if job_data.job.is_visa_offered %}
+              <span class="badge custom-bg">Visa Offered</span>
+            {% endif %}
+          </div>
+          <div class="d-flex flex-column align-items-end gap-2">
+            <div class="d-flex gap-2">
+              <a href="{% url 'job_board.edit_listing' job_data.job.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+              {% if not job_data.job.is_remote and job_data.job.location %}
+                <button type="button" class="btn btn-sm btn-info" onclick="showJobLocationMap({{ job_data.job.id }}, '{{ job_data.job.title|escapejs }}')">
+                  <i class="fas fa-map-marker-alt me-1"></i>View Location
+                </button>
+              {% endif %}
+              <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#candidatesModal" data-job-id="{{ job_data.job.id }}" data-job-title="{{ job_data.job.title|escapejs }}" data-candidates-count="{{ job_data.recommended_candidates|length }}">
+                <i class="fas fa-users me-1"></i>Recommended Candidates
+                {% if job_data.recommended_candidates %}
+                  <span class="badge bg-light text-dark ms-1">{{ job_data.recommended_candidates|length }}</span>
+                {% endif %}
+              </button>
+            </div>
+          </div>
+        </div>
+      </li>
+    {% empty %}
+      <li class="list-group-item">No job listings yet? Create one!</li>
+    {% endfor %}
+  </ul>
+</div>
+
+<!-- Job Location Map Modal -->
+<div class="modal fade" id="jobLocationMapModal" tabindex="-1" aria-labelledby="jobLocationMapModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="jobLocationMapModalLabel">
+          <i class="fas fa-map-marker-alt me-2"></i>Job Location
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0" style="height: 600px;">
+        <div id="jobLocationMap" style="width: 100%; height: 100%; min-height: 600px; background-color: #f0f0f0;"></div>
+      </div>
+      <div class="modal-footer justify-content-between">
+        <div id="jobLocationMapInfo" class="text-muted small">Loading location...</div>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recommended Candidates Modal -->
+<div class="modal fade" id="candidatesModal" tabindex="-1" aria-labelledby="candidatesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="candidatesModalLabel">Recommended Candidates</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="candidatesContent">
+          <!-- Candidates will be populated here by JavaScript -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.candidate-card {
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.candidate-card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.candidate-name {
+  font-weight: 600;
+  color: #007bff;
+  margin-bottom: 0.5rem;
+}
+
+.candidate-skills {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.skill-badge {
+  background-color: #e9ecef;
+  color: #495057;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  margin-right: 0.25rem;
+  margin-bottom: 0.25rem;
+  display: inline-block;
+}
+
+.no-candidates {
+  text-align: center;
+  padding: 2rem;
+  color: #6c757d;
+}
+
+.btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const candidatesModal = document.getElementById('candidatesModal');
+  const candidatesContent = document.getElementById('candidatesContent');
+  const modalTitle = document.getElementById('candidatesModalLabel');
+  
+  // Store candidates data for each job
+  const candidatesData = {};
+  
+  // Populate candidates data from template
+  {% for job_data in jobs_with_recommendations %}
+    candidatesData[{{ job_data.job.id }}] = {
+      jobTitle: "{{ job_data.job.title|escapejs }}",
+      candidates: [
+        {% for candidate_data in job_data.recommended_candidates %}
+          {
+            id: {{ candidate_data.user.id }},
+            name: "{{ candidate_data.user.username|escapejs }}",
+            email: "{{ candidate_data.user.email|escapejs }}",
+            skills: [
+              {% for skill in candidate_data.all_skills %}
+                "{{ skill|escapejs }}",
+              {% endfor %}
+            ]
+          }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+      ]
+    };
+  {% endfor %}
+  
+  // Handle modal show event
+  candidatesModal.addEventListener('show.bs.modal', function (event) {
+    try {
+      const button = event.relatedTarget;
+      const jobId = parseInt(button.getAttribute('data-job-id'));
+      const jobTitle = button.getAttribute('data-job-title');
+      
+      // Update modal title
+      modalTitle.textContent = `Recommended Candidates for "${jobTitle}"`;
+      
+      // Get candidates data
+      const jobData = candidatesData[jobId];
+      
+      if (jobData && jobData.candidates && jobData.candidates.length > 0) {
+        // Display candidates
+        candidatesContent.innerHTML = jobData.candidates.map(candidate => `
+          <div class="candidate-card">
+            <div class="candidate-name">${candidate.name || 'Unknown'}</div>
+            <div class="candidate-skills">
+              <strong>Skills:</strong>
+              ${(candidate.skills || []).map(skill => `<span class="skill-badge">${skill}</span>`).join('')}
+            </div>
+            ${candidate.email ? `<div class="mt-2"><small class="text-muted"><i class="fas fa-envelope me-1"></i>${candidate.email}</small></div>` : ''}
+          </div>
+        `).join('');
+      } else {
+        // No candidates found
+        candidatesContent.innerHTML = `
+          <div class="no-candidates">
+            <i class="fas fa-users fa-3x mb-3"></i>
+            <h5>No Recommended Candidates</h5>
+            <p>No candidates found with matching skills for this job.</p>
+          </div>
+        `;
+      }
+    } catch (error) {
+      console.error('Error loading candidates:', error);
+      candidatesContent.innerHTML = `
+        <div class="no-candidates">
+          <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+          <h5>Error Loading Candidates</h5>
+          <p>There was an error loading the recommended candidates. Please try again.</p>
+        </div>
+      `;
+    }
+  });
+});
+</script>
+
+<!-- Job Location Map Script -->
+<script>
+let jobLocationMap = null;
+let jobLocationMarker = null;
+let leafletLoadedForJobLocation = false;
+
+function showJobLocationMap(jobId, jobTitle) {
+  const modalTitle = document.getElementById('jobLocationMapModalLabel');
+  if (modalTitle) {
+    modalTitle.innerHTML = `<i class="fas fa-map-marker-alt me-2"></i>Job Location: ${escapeHtml(jobTitle)}`;
+  }
+  
+  const mapModal = document.getElementById('jobLocationMapModal');
+  let bootstrapModal = bootstrap.Modal.getInstance(mapModal);
+  if (!bootstrapModal) {
+    bootstrapModal = new bootstrap.Modal(mapModal);
+  }
+  bootstrapModal.show();
+  
+  mapModal.addEventListener('shown.bs.modal', function initializeJobLocationMap() {
+    mapModal.removeEventListener('shown.bs.modal', initializeJobLocationMap);
+    loadJobLocationMap(jobId);
+  }, { once: true });
+}
+
+function loadJobLocationMap(jobId) {
+  const mapElement = document.getElementById('jobLocationMap');
+  const mapInfoElement = document.getElementById('jobLocationMapInfo');
+  
+  if (!mapElement) {
+    console.error('Map element #jobLocationMap not found');
+    return;
+  }
+  
+  if (mapInfoElement) {
+    mapInfoElement.textContent = 'Loading location...';
+  }
+  
+  if (jobLocationMap) {
+    jobLocationMap.remove();
+    jobLocationMap = null;
+    jobLocationMarker = null;
+  }
+  
+  if (!leafletLoadedForJobLocation && typeof L === 'undefined') {
+    loadLeafletForJobLocation().then(function() {
+      leafletLoadedForJobLocation = true;
+      createJobLocationMap(jobId);
+    }).catch(function(error) {
+      console.error('Failed to load Leaflet:', error);
+      if (mapInfoElement) {
+        mapInfoElement.textContent = 'Failed to load map library. Please refresh the page.';
+      }
+    });
+  } else {
+    setTimeout(function() {
+      createJobLocationMap(jobId);
+    }, 300);
+  }
+}
+
+function loadLeafletForJobLocation() {
+  return new Promise(function(resolve, reject) {
+    if (typeof L !== 'undefined') {
+      resolve();
+      return;
+    }
+    
+    if (!document.querySelector('link[href*="leaflet.css"]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+    }
+    
+    const existingScript = document.querySelector('script[src*="leaflet.js"]');
+    if (!existingScript) {
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    } else {
+      existingScript.addEventListener('load', resolve, { once: true });
+      existingScript.addEventListener('error', reject, { once: true });
+    }
+  });
+}
+
+function createJobLocationMap(jobId) {
+  const mapElement = document.getElementById('jobLocationMap');
+  const mapInfoElement = document.getElementById('jobLocationMapInfo');
+  
+  if (!mapElement) {
+    console.error('Map element #jobLocationMap not found');
+    return;
+  }
+  
+  try {
+    jobLocationMap = L.map('jobLocationMap', {
+      center: [39.8283, -98.5795],
+      zoom: 4,
+      zoomControl: true
+    });
+    
+    const tileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19
+    });
+    tileLayer.addTo(jobLocationMap);
+    
+    setTimeout(function() {
+      if (jobLocationMap) {
+        jobLocationMap.invalidateSize();
+      }
+    }, 400);
+    
+    fetch(`/job_board/api/job-location/${jobId}/`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.error) {
+          if (mapInfoElement) {
+            mapInfoElement.textContent = data.error;
+          }
+          return;
+        }
+        
+        const job = data.job;
+        
+        if (job.is_remote) {
+          if (mapInfoElement) {
+            mapInfoElement.textContent = 'This is a remote job and has no office location.';
+          }
+          return;
+        }
+        
+        if (job.latitude && job.longitude) {
+          const lat = parseFloat(job.latitude);
+          const lng = parseFloat(job.longitude);
+          
+          const jobIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+          });
+          
+          jobLocationMarker = L.marker([lat, lng], { icon: jobIcon })
+            .bindPopup(`
+              <div style="min-width: 250px;">
+                <h6 class="mb-2 text-primary">${escapeHtml(job.title)}</h6>
+                <p class="mb-1"><strong>Location:</strong> ${escapeHtml(job.location)}</p>
+                <p class="mb-1"><strong>Salary:</strong> $${(job.salary || 0).toLocaleString()}</p>
+                <p class="mb-1"><strong>Skills:</strong> ${escapeHtml(job.skills || 'Not specified')}</p>
+                ${job.is_visa_offered ? '<span class="badge bg-info">Visa Offered</span>' : ''}
+              </div>
+            `)
+            .addTo(jobLocationMap);
+          
+          jobLocationMap.setView([lat, lng], 13);
+          
+          if (mapInfoElement) {
+            mapInfoElement.textContent = `Showing job location: ${escapeHtml(job.location)}`;
+          }
+        } else {
+          if (mapInfoElement) {
+            mapInfoElement.textContent = `Could not geocode location: ${escapeHtml(job.location || 'Location not specified')}`;
+          }
+          jobLocationMap.setView([39.8283, -98.5795], 4);
+        }
+      })
+      .catch(error => {
+        console.error('Error loading job location:', error);
+        if (mapInfoElement) {
+          mapInfoElement.textContent = 'Error loading job location. Please try again.';
+        }
+        if (jobLocationMap) {
+          jobLocationMap.setView([39.8283, -98.5795], 4);
+        }
+      });
+    
+  } catch (error) {
+    console.error('Error creating map:', error);
+    if (mapInfoElement) {
+      mapInfoElement.textContent = 'Error: ' + error.message;
+    }
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+document.getElementById('jobLocationMapModal')?.addEventListener('hidden.bs.modal', function() {
+  if (jobLocationMap) {
+    jobLocationMap.remove();
+    jobLocationMap = null;
+    jobLocationMarker = null;
+  }
+});
+</script>
+{% endblock content %}

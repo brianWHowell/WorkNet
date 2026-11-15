@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container my-5">
+  <!-- Hero Section -->
+  <header class="masthead text-center py-5 mb-5">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <img src="{% static 'img/logo.svg' %}" alt="WorkNet Logo" height="100" class="mb-4">
+          <h1 class="display-4 fw-bold mb-4" style="color: #4CAF50;">Welcome to WorkNet</h1>
+          <div class="d-flex gap-3 justify-content-center flex-wrap">
+            {% if not user.is_authenticated %}
+              <a href="{% url 'accounts.signup' %}" class="btn btn-primary btn-lg px-4">
+                <i class="fas fa-user-plus me-2"></i>Get Started
+              </a>
+              <a href="{% url 'job_board.index' %}" class="btn btn-outline-primary btn-lg px-4">
+                <i class="fas fa-briefcase me-2"></i>Browse Jobs
+              </a>
+            {% else %}
+              <a href="{% url 'job_board.index' %}" class="btn btn-primary btn-lg px-4">
+                <i class="fas fa-briefcase me-2"></i>Browse Jobs
+              </a>
+              {% if user.account_type == 'recruiter' %}
+                <a href="{% url 'job_board.create_listing' %}" class="btn btn-outline-primary btn-lg px-4">
+                  <i class="fas fa-plus-circle me-2"></i>Post a Job
+                </a>
+              {% elif user.account_type == 'seeker' %}
+                <a href="{% url 'accounts.seeker_profile' %}" class="btn btn-outline-primary btn-lg px-4">
+                  <i class="fas fa-user-edit me-2"></i>My Profile
+                </a>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Features Section -->
+  <div class="row g-4 mb-5">
+    <div class="col-md-4">
+      <div class="card h-100 text-center border-0 shadow-sm">
+        <div class="card-body p-4">
+          <div class="mb-3">
+            <i class="fas fa-search fa-3x text-primary"></i>
+          </div>
+          <h5 class="card-title fw-bold">Smart Job Search</h5>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 text-center border-0 shadow-sm">
+        <div class="card-body p-4">
+          <div class="mb-3">
+            <i class="fas fa-users fa-3x text-primary"></i>
+          </div>
+          <h5 class="card-title fw-bold">For Everyone</h5>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 text-center border-0 shadow-sm">
+        <div class="card-body p-4">
+          <div class="mb-3">
+            <i class="fas fa-map-marker-alt fa-3x text-primary"></i>
+          </div>
+          <h5 class="card-title fw-bold">Location-Based</h5>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Section (if applicable) -->
+  {% if user.is_authenticated %}
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <h4 class="fw-bold mb-4 text-primary">Quick Actions</h4>
+          <div class="row g-3">
+            {% if user.account_type == 'recruiter' %}
+              <div class="col-md-6 col-lg-3">
+                <a href="{% url 'job_board.create_listing' %}" class="text-decoration-none">
+                  <div class="card border-0 bg-light h-100">
+                    <div class="card-body text-center">
+                      <i class="fas fa-plus-circle fa-2x text-primary mb-2"></i>
+                      <h6 class="mb-0">Post a Job</h6>
+                    </div>
+                  </div>
+                </a>
+              </div>
+              <div class="col-md-6 col-lg-3">
+                <a href="{% url 'job_board.recruiter_listings' %}" class="text-decoration-none">
+                  <div class="card border-0 bg-light h-100">
+                    <div class="card-body text-center">
+                      <i class="fas fa-list fa-2x text-primary mb-2"></i>
+                      <h6 class="mb-0">My Listings</h6>
+                    </div>
+                  </div>
+                </a>
+              </div>
+              <div class="col-md-6 col-lg-3">
+                <a href="{% url 'job_board.manage_applications' %}" class="text-decoration-none">
+                  <div class="card border-0 bg-light h-100">
+                    <div class="card-body text-center">
+                      <i class="fas fa-tasks fa-2x text-primary mb-2"></i>
+                      <h6 class="mb-0">Manage Applications</h6>
+                    </div>
+                  </div>
+                </a>
+              </div>
+              <div class="col-md-6 col-lg-3">
+                <a href="{% url 'accounts.search_candidates' %}" class="text-decoration-none">
+                  <div class="card border-0 bg-light h-100">
+                    <div class="card-body text-center">
+                      <i class="fas fa-user-search fa-2x text-primary mb-2"></i>
+                      <h6 class="mb-0">Search Candidates</h6>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            {% elif user.account_type == 'seeker' %}
+              <div class="col-md-6 col-lg-4">
+                <a href="{% url 'accounts.seeker_profile' %}" class="text-decoration-none">
+                  <div class="card border-0 bg-light h-100">
+                    <div class="card-body text-center">
+                      <i class="fas fa-user-edit fa-2x text-primary mb-2"></i>
+                      <h6 class="mb-0">My Profile</h6>
+                    </div>
+                  </div>
+                </a>
+              </div>
+              <div class="col-md-6 col-lg-4">
+                <a href="{% url 'job_board.my_applications' %}" class="text-decoration-none">
+                  <div class="card border-0 bg-light h-100">
+                    <div class="card-body text-center">
+                      <i class="fas fa-file-alt fa-2x text-primary mb-2"></i>
+                      <h6 class="mb-0">My Applications</h6>
+                    </div>
+                  </div>
+                </a>
+              </div>
+              <div class="col-md-6 col-lg-4">
+                <a href="{% url 'job_board.index' %}" class="text-decoration-none">
+                  <div class="card border-0 bg-light h-100">
+                    <div class="card-body text-center">
+                      <i class="fas fa-briefcase fa-2x text-primary mb-2"></i>
+                      <h6 class="mb-0">Browse Jobs</h6>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock content %}

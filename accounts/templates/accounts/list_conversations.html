@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-envelope me-2"></i>{{ template_data.title }}
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            {% if template_data.conversations %}
+                <div class="list-group">
+                    {% for conversation in template_data.conversations %}
+                    <a href="{% url 'accounts.view_conversation' conversation.id %}" class="list-group-item list-group-item-action {% if conversation.unread_count > 0 %}list-group-item-primary{% endif %}">
+                        <div class="d-flex w-100 justify-content-between align-items-center">
+                            <div class="flex-grow-1">
+                                <h5 class="mb-1">
+                                    {% if user.account_type == 'recruiter' %}
+                                        {{ conversation.seeker.get_full_name|default:conversation.seeker.username }}
+                                    {% else %}
+                                        {{ conversation.recruiter.get_full_name|default:conversation.recruiter.username }}
+                                    {% endif %}
+                                    {% if conversation.unread_count > 0 %}
+                                        <span class="badge bg-primary rounded-pill ms-2">{{ conversation.unread_count }}</span>
+                                    {% endif %}
+                                </h5>
+                                {% if conversation.latest_message %}
+                                    <p class="mb-1 text-muted">
+                                        {{ conversation.latest_message.body|truncatewords:20 }}
+                                    </p>
+                                {% else %}
+                                    <p class="mb-1 text-muted">No messages yet</p>
+                                {% endif %}
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">{{ conversation.updated_at|date:"M d, Y" }}</small>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Conversations Yet</h5>
+                        <p class="text-muted">
+                            {% if user.account_type == 'recruiter' %}
+                                You haven't started any conversations with job seekers yet.
+                            {% else %}
+                                You haven't received any messages from recruiters yet.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

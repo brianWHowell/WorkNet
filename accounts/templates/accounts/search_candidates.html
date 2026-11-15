@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>{{ template_data.title }}</h2>
+        <div>
+            <a href="{% url 'accounts.my_saved_searches' %}" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-bookmark me-1"></i>My Saved Searches
+            </a>
+            {% if template_data.notification_count > 0 %}
+            <a href="{% url 'accounts.search_notifications' %}" class="btn btn-primary position-relative">
+                <i class="fas fa-bell me-1"></i>Notifications
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    {{ template_data.notification_count }}
+                </span>
+            </a>
+            {% else %}
+            <a href="{% url 'accounts.search_notifications' %}" class="btn btn-outline-primary">
+                <i class="fas fa-bell me-1"></i>Notifications
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Quick Load Saved Searches -->
+    {% if template_data.saved_searches %}
+    <div class="card mb-3">
+        <div class="card-body py-2">
+            <small class="text-muted me-2">Quick Load:</small>
+            {% for search in template_data.saved_searches %}
+            <a href="?load={{ search.id }}" class="btn btn-sm btn-outline-secondary me-2">{{ search.name }}</a>
+            {% endfor %}
+            <a href="{% url 'accounts.my_saved_searches' %}" class="btn btn-sm btn-link">View All</a>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Search Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" id="searchForm" class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Skills</label>
+                    <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                        {{ template_data.form.skills }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label for="{{ template_data.form.location.id_for_label }}" class="form-label">Location</label>
+                    {{ template_data.form.location }}
+                </div>
+                <div class="col-md-6">
+                    <label for="{{ template_data.form.years_of_experience.id_for_label }}" class="form-label">Minimum Years of Experience</label>
+                    {{ template_data.form.years_of_experience }}
+                </div>
+                <div class="col-md-6">
+                    <label for="{{ template_data.form.keywords.id_for_label }}" class="form-label">Keywords</label>
+                    {{ template_data.form.keywords }}
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Search Candidates</button>
+                    <button type="button" class="btn btn-success" id="saveSearchBtn">
+                        <i class="fas fa-save me-1"></i>Save This Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="row">
+        {% for candidate in template_data.candidates %}
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ candidate.username }}</h5>
+                    {% if candidate.email %}
+                        <div class="mb-2">
+                            <a href="mailto:{{ candidate.email }}" onclick="return showEmailPopup(event, '{{ candidate.email }}')" class="text-decoration-none">
+                                <i class="fas fa-envelope me-1"></i>{{ candidate.email }}
+                            </a>
+                        </div>
+                    {% endif %}
+                    {% if not candidate.hide_location %}
+                        <h6 class="card-subtitle mb-2 text-muted">{{ candidate.location }}</h6>
+                    {% else %}
+                        <h6 class="card-subtitle mb-2 text-muted">
+                            <i class="fas fa-lock me-1"></i>
+                        </h6>
+                    {% endif %}
+                    
+                    <p class="card-text">{{ candidate.bio|truncatewords:30 }}</p>
+                    
+                    {% if not candidate.hide_skills %}
+                        <div class="mb-2">
+                            <strong>Skills:</strong>
+                            {% for skill in candidate.skills.all %}
+                            <span class="badge bg-secondary me-1">{{ skill.name }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="mb-2">
+                            <strong>Skills:</strong> <i class="fas fa-lock me-1"></i>
+                        </div>
+                    {% endif %}
+                    
+                    {% if not candidate.hide_experience %}
+                        <div class="mb-2">
+                            <strong>Experience:</strong> {{ candidate.years_of_experience }} years
+                        </div>
+                    {% else %}
+                        <div class="mb-2">
+                            <strong>Experience:</strong> <i class="fas fa-lock me-1"></i>
+                        </div>
+                    {% endif %}
+                    
+                    {% if not candidate.hide_projects %}
+                        <div class="mt-3">
+                            <strong>Projects:</strong>
+                            <ul class="list-unstyled">
+                                {% for project in candidate.projects.all %}
+                                <li class="mb-2">
+                                    <strong>{{ project.title }}</strong>
+                                    <p class="small text-muted mb-1">{{ project.description|truncatewords:20 }}</p>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% else %}
+                        <div class="mt-3">
+                            <strong>Projects:</strong> <i class="fas fa-lock me-1"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mt-3">
+                        <strong>Contact:</strong>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'accounts.send_message' candidate.id %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-envelope me-1"></i>Send Message
+                            </a>
+                        </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                No candidates found matching your criteria.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Email Popup Modal -->
+<div class="modal fade" id="emailPopupModal" tabindex="-1" aria-labelledby="emailPopupModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="emailPopupModalLabel">
+                    <i class="fas fa-envelope me-2"></i>Send Email
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Clicking "Open Email Client" will open your default email application with this candidate's email address.</p>
+                <p class="mb-0"><strong>Recipient:</strong> <span id="popupEmail"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a id="openEmailLink" href="#" class="btn btn-primary">
+                    <i class="fas fa-envelope me-2"></i>Open Email Client
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showEmailPopup(event, email) {
+    event.preventDefault();
+    
+    document.getElementById('popupEmail').textContent = email;
+    document.getElementById('openEmailLink').href = 'mailto:' + email;
+    
+    var modal = new bootstrap.Modal(document.getElementById('emailPopupModal'));
+    modal.show();
+    
+    return false;
+}
+
+// Save search functionality
+document.getElementById('saveSearchBtn').addEventListener('click', function() {
+    const searchName = prompt('Enter a name for this search:');
+    if (!searchName) return;
+    
+    const formData = {
+        name: searchName,
+        location: document.querySelector('#{{ template_data.form.location.id_for_label }}').value,
+        years_of_experience: document.querySelector('#{{ template_data.form.years_of_experience.id_for_label }}').value,
+        keywords: document.querySelector('#{{ template_data.form.keywords.id_for_label }}').value,
+        skills: Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value)
+    };
+    
+    fetch('{% url "accounts.save_search" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Search saved successfully!');
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to save search.');
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,1697 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    <!-- Search Filters Sidebar -->
+    <div class="col-lg-3 mb-4" id="filtersSidebar" {% if user.is_authenticated and user.account_type == 'seeker' %}style="display: none;"{% endif %}>
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Search Filters</h5>
+        </div>
+        <div class="card-body">
+          <form method="get" action="{% url 'job_board.index' %}" id="jobSearchForm">
+            <!-- Job Title/Keywords -->
+            <div class="mb-3">
+              <label for="jobTitle" class="form-label">Job Title</label>
+              <input type="text" class="form-control" id="jobTitle" name="title" value="{{ request.GET.title }}" placeholder="Job title or keywords...">
+            </div>
+
+            <!-- Location -->
+            <div class="mb-3">
+              <label for="location" class="form-label">Location</label>
+              <input type="text" class="form-control" id="location" name="location" value="{{ request.GET.location }}" placeholder="City, State, Country...">
+            </div>
+
+            <!-- Salary Range -->
+            <div class="mb-3">
+              <label for="salaryRange" class="form-label">Salary Range</label>
+              <select class="form-select" id="salaryRange" name="salary_range">
+                <option value="">Any Salary</option>
+                <option value="0-50000" {% if request.GET.salary_range == '0-50000' %}selected{% endif %}>$0 - $50,000</option>
+                <option value="50000-75000" {% if request.GET.salary_range == '50000-75000' %}selected{% endif %}>$50,000 - $75,000</option>
+                <option value="75000-100000" {% if request.GET.salary_range == '75000-100000' %}selected{% endif %}>$75,000 - $100,000</option>
+                <option value="100000-125000" {% if request.GET.salary_range == '100000-125000' %}selected{% endif %}>$100,000 - $125,000</option>
+                <option value="125000-150000" {% if request.GET.salary_range == '125000-150000' %}selected{% endif %}>$125,000 - $150,000</option>
+                <option value="150000+" {% if request.GET.salary_range == '150000+' %}selected{% endif %}>$150,000+</option>
+              </select>
+            </div>
+
+            <!-- Work Type -->
+            <div class="mb-3">
+              <label for="workType" class="form-label">Work Type</label>
+              <select class="form-select" id="workType" name="work_type">
+                <option value="">Any Work Type</option>
+                <option value="remote" {% if request.GET.work_type == 'remote' %}selected{% endif %}>Remote</option>
+                <option value="onsite" {% if request.GET.work_type == 'onsite' %}selected{% endif %}>On-site</option>
+              </select>
+            </div>
+
+            <!-- Skills -->
+            <div class="mb-3">
+              <label class="form-label">Required Skills</label>
+              <div class="skills-container" style="max-height: 200px; overflow-y: auto;">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="skillPython" name="skills" value="Python" {% if 'Python' in request.GET.skills %}checked{% endif %}>
+                  <label class="form-check-label" for="skillPython">Python</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="skillJavaScript" name="skills" value="JavaScript">
+                  <label class="form-check-label" for="skillJavaScript">JavaScript</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="skillJava" name="skills" value="Java">
+                  <label class="form-check-label" for="skillJava">Java</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="skillCSharp" name="skills" value="C#">
+                  <label class="form-check-label" for="skillCSharp">C#</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="skillReact" name="skills" value="React">
+                  <label class="form-check-label" for="skillReact">React</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="skillAngular" name="skills" value="Angular">
+                  <label class="form-check-label" for="skillAngular">Angular</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="skillVue" name="skills" value="Vue.js">
+                  <label class="form-check-label" for="skillVue">Vue.js</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="skillNode" name="skills" value="Node.js">
+                  <label class="form-check-label" for="skillNode">Node.js</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="skillDjango" name="skills" value="Django">
+                  <label class="form-check-label" for="skillDjango">Django</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="skillFlask" name="skills" value="Flask">
+                  <label class="form-check-label" for="skillFlask">Flask</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="skillSpring" name="skills" value="Spring">
+                  <label class="form-check-label" for="skillSpring">Spring</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="skillSQL" name="skills" value="SQL">
+                  <label class="form-check-label" for="skillSQL">SQL</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="skillMongoDB" name="skills" value="MongoDB">
+                  <label class="form-check-label" for="skillMongoDB">MongoDB</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="skillPostgreSQL" name="skills" value="PostgreSQL">
+                  <label class="form-check-label" for="skillPostgreSQL">PostgreSQL</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="skillAWS" name="skills" value="AWS">
+                  <label class="form-check-label" for="skillAWS">AWS</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="skillAzure" name="skills" value="Azure">
+                  <label class="form-check-label" for="skillAzure">Azure</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="skillDocker" name="skills" value="Docker">
+                  <label class="form-check-label" for="skillDocker">Docker</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="skillKubernetes" name="skills" value="Kubernetes">
+                  <label class="form-check-label" for="skillKubernetes">Kubernetes</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="skillGit" name="skills" value="Git">
+                  <label class="form-check-label" for="skillGit">Git</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="skillTypeScript" name="skills" value="TypeScript">
+                  <label class="form-check-label" for="skillTypeScript">TypeScript</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Visa Sponsorship -->
+            <div class="mb-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="visaSponsorship" name="visa_sponsorship" {% if request.GET.visa_sponsorship %}checked{% endif %}>
+                <label class="form-check-label" for="visaSponsorship">
+                  Visa Sponsorship Required
+                </label>
+              </div>
+            </div>
+
+            <!-- Distance Filter (only for job seekers) -->
+            {% if user.is_authenticated and user.account_type == 'seeker' %}
+            <div class="mb-3">
+              <label for="distanceFilter" class="form-label">Distance from Me (miles)</label>
+              <select class="form-select" id="distanceFilter" name="distance">
+                <option value="">Any Distance</option>
+                <option value="5" {% if request.GET.distance == '5' %}selected{% endif %}>5 miles</option>
+                <option value="10" {% if request.GET.distance == '10' %}selected{% endif %}>10 miles</option>
+                <option value="25" {% if request.GET.distance == '25' %}selected{% endif %}>25 miles</option>
+                <option value="50" {% if request.GET.distance == '50' %}selected{% endif %}>50 miles</option>
+                <option value="100" {% if request.GET.distance == '100' %}selected{% endif %}>100 miles</option>
+              </select>
+              <small class="form-text text-muted">Distance is calculated from your profile location</small>
+            </div>
+            {% endif %}
+
+            <!-- Hidden input to track search state -->
+            <input type="hidden" name="active_tab" id="activeTabInput" value="">
+
+            <!-- Search Buttons -->
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn custom-bg text-white">
+                <i class="fas fa-search me-2"></i>Search
+              </button>
+              <button type="button" class="btn btn-outline-secondary" onclick="clearFilters()">
+                <i class="fas fa-times me-2"></i>Clear Filters
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Job Listings Results -->
+    <div class="col-lg-9" id="mainContent">
+      <!-- Toggle between Recommendations and All Jobs for Job Seekers -->
+      {% if user.is_authenticated and user.account_type == 'seeker' %}
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="btn-group" role="group" aria-label="View toggle">
+          <button type="button" class="btn btn-outline-primary active" id="recommendationsBtn" onclick="showRecommendations()">
+            <i class="fas fa-star me-2"></i>Recommended Jobs
+          </button>
+          <button type="button" class="btn btn-outline-primary" id="allJobsBtn" onclick="showAllJobs()">
+            <i class="fas fa-search me-2"></i>All Jobs
+          </button>
+        </div>
+        <div class="d-flex align-items-center">
+          <button type="button" class="btn btn-outline-success me-2" id="dynamicMapBtn" onclick="showMapViewFromActiveTab()" style="display: none;">
+            <i class="fas fa-map-marker-alt me-2"></i>Map
+          </button>
+          <span class="badge bg-info me-2" id="viewModeBadge">Recommendations</span>
+        </div>
+      </div>
+      {% else %}
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Job Listings</h2>
+      </div>
+      {% endif %}
+
+      <!-- Recommendations Section (only for job seekers) -->
+      {% if user.is_authenticated and user.account_type == 'seeker' %}
+      <div id="recommendationsSection" class="recommendations-section">
+        <div class="card mb-4">
+          <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
+            <div>
+              <h4 class="mb-0">
+                <i class="fas fa-star me-2"></i>Recommended Jobs for You
+              </h4>
+              <small class="opacity-75">Jobs that match your skills and preferences</small>
+            </div>
+            <button type="button" class="btn btn-light btn-sm" onclick="showMapView('recommendations')">
+              <i class="fas fa-map-marker-alt me-2"></i>Map View
+            </button>
+          </div>
+          <div class="card-body">
+            <!-- Recommended job cards -->
+            <div class="row" id="recommendationsContent">
+              {% if recommended_jobs %}
+                {% for job in recommended_jobs %}
+                  <div class="col-md-6 mb-3">
+                    <div class="card recommendation-card border-primary">
+                      <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                          <h6 class="card-title text-primary mb-0">{{ job.title }}</h6>
+                          <span class="badge bg-success">Recommended</span>
+                        </div>
+                        <div class="job-details mb-3">
+                          <div class="mb-1">
+                            <small class="text-muted">
+                              <i class="fas fa-map-marker-alt me-1"></i>
+                              <strong>Location:</strong> {{ job.location }}
+                            </small>
+                          </div>
+                          <div class="mb-1">
+                            <small class="text-muted">
+                              <i class="fas fa-dollar-sign me-1"></i>
+                              <strong>Salary:</strong> ${{ job.salary|floatformat:0 }}
+                            </small>
+                          </div>
+                          <div class="mb-2">
+                            <small class="text-muted">
+                              <i class="fas fa-code me-1"></i>
+                              <strong>Skills:</strong> {{ job.skills }}
+                            </small>
+                          </div>
+                          <div class="mb-2">
+                            {% if job.is_remote %}
+                              <span class="badge bg-primary me-1">
+                                <i class="fas fa-home me-1"></i>Remote
+                              </span>
+                            {% else %}
+                              <span class="badge bg-primary me-1">
+                                <i class="fas fa-building me-1"></i>On-site
+                              </span>
+                            {% endif %}
+                            {% if job.is_visa_offered %}
+                              <span class="badge bg-primary">
+                                <i class="fas fa-passport me-1"></i>Visa Offered
+                              </span>
+                            {% endif %}
+                          </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                          <small class="text-muted">
+                            <i class="fas fa-user me-1"></i>
+                            Posted by: {{ job.recruiter.username }}
+                          </small>
+                          <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#applyModal" data-job-id="{{ job.id }}" data-job-title="{{ job.title }}">
+                            <i class="fas fa-paper-plane me-1"></i>Apply
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <!-- No recommendations message -->
+                <div class="col-md-12">
+                  <div class="text-center py-4">
+                    <i class="fas fa-star fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Recommendations Yet</h4>
+                    {% if user_has_skills %}
+                      <p class="text-muted mb-4">
+                        We couldn't find any jobs that match your skills right now. Try browsing all jobs or updating your search filters.
+                      </p>
+                      <button type="button" class="btn btn-primary" onclick="showAllJobs()">
+                        <i class="fas fa-briefcase me-2"></i>Browse All Jobs
+                      </button>
+                    {% else %}
+                      <p class="text-muted mb-4">
+                        We're still learning about your preferences. Complete your profile and add skills to get personalized job recommendations.
+                      </p>
+                      <a href="{% url 'accounts.seeker_profile' %}" class="btn btn-primary">
+                        <i class="fas fa-user-edit me-2"></i>Complete Profile
+                      </a>
+                    {% endif %}
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- All Jobs Section (only for job seekers) -->
+      {% if user.is_authenticated and user.account_type == 'seeker' %}
+      <div id="searchSection" class="search-section" style="display: none;">
+        <div class="card mb-4">
+          <div class="card-header bg-gradient-success text-white">
+            <h4 class="mb-0">
+              <i class="fas fa-search me-2"></i>All Jobs
+            </h4>
+            <small class="opacity-75">Use filters to find specific job opportunities</small>
+          </div>
+          <div class="card-body">
+            <!-- Map bounds filter indicator -->
+            {% if request.GET.map_north %}
+            <div class="alert alert-info alert-dismissible fade show mb-3" role="alert">
+              <i class="fas fa-map-marked-alt me-2"></i>
+              <strong>Map Area Filter Active:</strong> Showing jobs within the selected map area.
+              <a href="?active_tab=all_jobs" class="btn btn-sm btn-outline-info ms-2">
+                <i class="fas fa-times me-1"></i>Clear Map Filter
+              </a>
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+            <!-- Search results will be populated here -->
+            <div id="searchResults">
+              {% if search_jobs %}
+                <div class="row">
+                  {% for job in search_jobs %}
+                    <div class="col-md-6 mb-4">
+                      <div class="card h-100 job-card">
+                        <div class="card-body">
+                          <h5 class="card-title text-primary">{{ job.title }}</h5>
+                          <div class="job-details mb-3">
+                            <div class="mb-2">
+                              <small class="text-muted">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                <strong>Location:</strong> {{ job.location }}
+                              </small>
+                            </div>
+                            <div class="mb-2">
+                              <small class="text-muted">
+                                <i class="fas fa-dollar-sign me-1"></i>
+                                <strong>Salary:</strong> ${{ job.salary|floatformat:0 }}
+                              </small>
+                            </div>
+                            <div class="mb-2">
+                              <small class="text-muted">
+                                <i class="fas fa-code me-1"></i>
+                                <strong>Skills:</strong> {{ job.skills }}
+                              </small>
+                            </div>
+                            <div class="mb-3">
+                              {% if job.is_remote %}
+                                <span class="badge bg-primary me-1">
+                                  <i class="fas fa-home me-1"></i>Remote
+                                </span>
+                              {% else %}
+                                <span class="badge bg-primary me-1">
+                                  <i class="fas fa-building me-1"></i>On-site
+                                </span>
+                              {% endif %}
+                              {% if job.is_visa_offered %}
+                                <span class="badge bg-primary">
+                                  <i class="fas fa-passport me-1"></i>Visa Offered
+                                </span>
+                              {% endif %}
+                            </div>
+                          </div>
+                          <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                              <i class="fas fa-user me-1"></i>
+                              Posted by: {{ job.recruiter.username }}
+                            </small>
+                            {% if user.is_authenticated and user.account_type == 'seeker' %}
+                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#applyModal" data-job-id="{{ job.id }}" data-job-title="{{ job.title }}">
+                              <i class="fas fa-paper-plane me-1"></i>Apply
+                            </button>
+                            {% endif %}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {% if forloop.counter|divisibleby:2 and not forloop.last %}
+                      </div><div class="row">
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div class="text-center py-4">
+                  <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                  <h4 class="text-muted">Start Your Search</h4>
+                  <p class="text-muted mb-4">
+                    Use the search filters on the left to find jobs that match your criteria.
+                  </p>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+  <!-- Regular Job Listings Section (for non-seekers) -->
+  <div id="allJobsSection" class="all-jobs-section" {% if user.is_authenticated and user.account_type == 'seeker' %}style="display: none;"{% endif %}>
+  {% if all_jobs %}
+    <div class="row">
+      {% for job in all_jobs %}
+            <div class="col-md-6 mb-4">
+              <div class="card h-100 job-card">
+            <div class="card-body">
+                  <h5 class="card-title text-primary">{{ job.title }}</h5>
+              <div class="job-details mb-3">
+                    <div class="mb-2">
+                      <small class="text-muted">
+                        <i class="fas fa-map-marker-alt me-1"></i>
+                        <strong>Location:</strong> {{ job.location }}
+                      </small>
+                    </div>
+                    <div class="mb-2">
+                      <small class="text-muted">
+                        <i class="fas fa-dollar-sign me-1"></i>
+                        <strong>Salary:</strong> ${{ job.salary|floatformat:0 }}
+                      </small>
+                    </div>
+                    <div class="mb-2">
+                <small class="text-muted">
+                        <i class="fas fa-code me-1"></i>
+                        <strong>Skills:</strong> {{ job.skills }}
+                      </small>
+                    </div>
+                    <div class="mb-3">
+                      {% if job.is_remote %}
+                        <span class="badge bg-primary me-1">
+                          <i class="fas fa-home me-1"></i>Remote
+                        </span>
+                      {% else %}
+                        <span class="badge bg-primary me-1">
+                          <i class="fas fa-building me-1"></i>On-site
+                        </span>
+                      {% endif %}
+                      {% if job.is_visa_offered %}
+                        <span class="badge bg-primary">
+                          <i class="fas fa-passport me-1"></i>Visa Offered
+                        </span>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                      <i class="fas fa-user me-1"></i>
+                      Posted by: {{ job.recruiter.username }}
+                    </small>
+                    {% if user.is_authenticated and user.account_type == 'seeker' %}
+                    <a href="{% url 'job_board.apply' job.id %}" class="btn btn-success btn-sm">
+                      <i class="fas fa-paper-plane me-1"></i>Apply
+                    </a>
+                    {% else %}
+                    <!-- Debug: user.is_authenticated={{ user.is_authenticated }}, user.account_type={{ user.account_type }} -->
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% if forloop.counter|divisibleby:2 and not forloop.last %}
+          </div><div class="row">
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% else %}
+        <div class="text-center py-5">
+          <div class="card">
+            <div class="card-body">
+              <i class="fas fa-search fa-3x text-muted mb-3"></i>
+              <h4 class="text-muted">No jobs found</h4>
+              <p class="text-muted mb-4">
+                There are currently no job listings posted. Check back later or try adjusting your search filters.
+              </p>
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <div class="text-center">
+                    <i class="fas fa-filter fa-2x text-primary mb-2"></i>
+                    <h6>Filter by Skills</h6>
+                    <small class="text-muted">Find jobs matching your expertise</small>
+                  </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <div class="text-center">
+                    <i class="fas fa-map-marker-alt fa-2x text-primary mb-2"></i>
+                    <h6>Location Search</h6>
+                    <small class="text-muted">Remote, on-site, or specific locations</small>
+                  </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <div class="text-center">
+                    <i class="fas fa-dollar-sign fa-2x text-primary mb-2"></i>
+                    <h6>Salary Range</h6>
+                    <small class="text-muted">Find opportunities in your salary range</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+  </div> <!-- Close allJobsSection -->
+
+<!-- Apply Modal -->
+<div class="modal fade" id="applyModal" tabindex="-1" aria-labelledby="applyModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="applyModalLabel">Apply for Job</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="applyForm" method="post" action="">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="jobTitleDisplay" class="form-label">Job Title</label>
+            <input type="text" class="form-control" id="jobTitleDisplay" readonly>
+          </div>
+          <div class="mb-3">
+            <label for="applicationMessage" class="form-label">Application Message (Optional)</label>
+            <textarea class="form-control" id="applicationMessage" name="application_message" rows="4" placeholder="Write a custom message to the recruiter..."></textarea>
+            <div class="form-text">This message will be sent to the recruiter along with your application.</div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" id="sendApplication">
+          <i class="fas fa-paper-plane me-1"></i>Submit Application
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Map Modal -->
+<div class="modal fade" id="mapModal" tabindex="-1" aria-labelledby="mapModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-xl modal-fullscreen-lg-down">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="mapModalLabel">
+          <i class="fas fa-map-marker-alt me-2"></i>Job Map
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0" style="height: 70vh; min-height: 400px;">
+        <div id="jobMap" style="width: 100%; height: 100%; min-height: 400px; background-color: #f0f0f0;"></div>
+      </div>
+      <div class="modal-footer">
+        <div id="mapInfo" class="text-muted small me-auto">Initializing map...</div>
+        <button type="button" class="btn btn-primary" id="searchVisibleAreaBtn" onclick="searchInVisibleArea()" style="display: none;">
+          <i class="fas fa-search me-2"></i>Search in Visible Area
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.job-card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.job-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.skills-container {
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  padding: 0.5rem;
+  background-color: #f8f9fa;
+}
+
+.form-check {
+  margin-bottom: 0.5rem;
+}
+
+.form-check-input {
+  margin-top: 0.25rem;
+}
+
+.badge {
+  font-size: 0.75rem;
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+/* Apply button styling */
+.btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+  transform: translateY(-1px);
+}
+
+/* Modal styling */
+.modal-content {
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.modal-footer {
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+  border-radius: 0 0 0.5rem 0.5rem;
+}
+
+/* Recommendation section styling */
+.recommendations-section {
+  margin-bottom: 2rem;
+}
+
+.recommendation-card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  border-left: 4px solid #007bff !important;
+}
+
+.recommendation-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,123,255,0.15);
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+
+.bg-gradient-success {
+  background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+}
+
+/* Toggle button styling */
+.btn-group .btn {
+  border-radius: 0.375rem;
+  margin-right: 0.5rem;
+}
+
+.btn-group .btn.active {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: white;
+}
+
+.btn-group .btn:not(.active) {
+  background-color: transparent;
+  border-color: #007bff;
+  color: #007bff;
+}
+
+.btn-group .btn:not(.active):hover {
+  background-color: #007bff;
+  color: white;
+}
+
+/* Map styling - ensure it always displays */
+#jobMap {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 400px;
+  background-color: #f0f0f0;
+}
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  background-color: #f0f0f0;
+}
+
+/* Prevent popup from closing when clicking inside */
+.job-marker-popup {
+  pointer-events: auto !important;
+}
+
+.job-marker-popup button,
+.job-marker-popup a {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+.job-marker-popup .job-popup-prev:disabled,
+.job-marker-popup .job-popup-next:disabled {
+  cursor: not-allowed !important;
+  opacity: 0.5 !important;
+}
+</style>
+
+<script>
+function clearFilters() {
+  document.querySelectorAll('input[type="text"]').forEach(input => input.value = '');
+  document.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+  document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
+}
+
+// Form submission handler - switch to search tab when searching
+document.getElementById('jobSearchForm').addEventListener('submit', function(e) {
+  // Let the form submit naturally to the backend
+});
+
+// Apply modal functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const applyModal = document.getElementById('applyModal');
+  const jobTitleDisplay = document.getElementById('jobTitleDisplay');
+  const applicationMessage = document.getElementById('applicationMessage');
+  const sendApplicationBtn = document.getElementById('sendApplication');
+  
+  // Handle modal show event
+  applyModal.addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    const jobId = button.getAttribute('data-job-id');
+    const jobTitle = button.getAttribute('data-job-title');
+    
+    // Update modal content
+    jobTitleDisplay.value = jobTitle;
+    applicationMessage.value = ''; // Clear previous message
+    
+    // Store job ID for later use
+    applyModal.setAttribute('data-current-job-id', jobId);
+  });
+  
+  // Handle send application button click
+  sendApplicationBtn.addEventListener('click', function() {
+    const jobId = applyModal.getAttribute('data-current-job-id');
+    if (!jobId) {
+      alert('Error: Job ID not found. Please try again.');
+      return;
+    }
+    
+    // Get the form and message
+    const form = document.getElementById('applyForm');
+    const message = applicationMessage.value;
+    
+    // Set form action to the apply endpoint
+    form.action = `/job_board/apply/${jobId}/`;
+    
+    // Submit the form
+    form.submit();
+  });
+});
+
+// Toggle functionality for recommendations, all jobs, and search
+function showRecommendations() {
+  document.getElementById('recommendationsSection').style.display = 'block';
+  document.getElementById('allJobsSection').style.display = 'none';
+  document.getElementById('searchSection').style.display = 'none';
+  
+  // Hide sidebar and expand main content
+  document.getElementById('filtersSidebar').style.display = 'none';
+  document.getElementById('mainContent').className = 'col-lg-12';
+  
+  // Update button states
+  document.getElementById('recommendationsBtn').classList.add('active');
+  document.getElementById('allJobsBtn').classList.remove('active');
+  
+  // Show map button for recommendations
+  const mapBtn = document.getElementById('dynamicMapBtn');
+  if (mapBtn) {
+    mapBtn.style.display = 'block';
+    mapBtn.setAttribute('data-source', 'recommendations');
+  }
+  
+  // Update badge
+  document.getElementById('viewModeBadge').textContent = 'Recommendations';
+  document.getElementById('viewModeBadge').className = 'badge bg-info me-2';
+  
+  // Update URL parameter
+  updateUrlParameter('active_tab', 'recommendations');
+}
+
+function showAllJobs() {
+  document.getElementById('recommendationsSection').style.display = 'none';
+  document.getElementById('allJobsSection').style.display = 'none';
+  document.getElementById('searchSection').style.display = 'block';
+  
+  // Show sidebar and adjust main content width
+  document.getElementById('filtersSidebar').style.display = 'block';
+  document.getElementById('mainContent').className = 'col-lg-9';
+  
+  // Update button states
+  document.getElementById('allJobsBtn').classList.add('active');
+  document.getElementById('recommendationsBtn').classList.remove('active');
+  
+  // Show map button for all jobs
+  const mapBtn = document.getElementById('dynamicMapBtn');
+  if (mapBtn) {
+    mapBtn.style.display = 'block';
+    mapBtn.setAttribute('data-source', 'search');
+  }
+  
+  // Update badge
+  document.getElementById('viewModeBadge').textContent = 'All Jobs';
+  document.getElementById('viewModeBadge').className = 'badge bg-success me-2';
+  
+  // Update URL parameter
+  updateUrlParameter('active_tab', 'all_jobs');
+}
+
+// Helper function to update URL parameters without page reload
+function updateUrlParameter(param, value) {
+  const url = new URL(window.location);
+  url.searchParams.set(param, value);
+  window.history.replaceState({}, '', url);
+}
+
+// Map functionality
+let jobMap = null;
+let mapMarkers = [];
+let mapInitializing = false; // Flag to prevent multiple initializations
+let leafletLoaded = false; // Track if Leaflet is loaded
+let currentMapBounds = null; // Track current visible map bounds
+let mapSource = 'search'; // Track which source is being shown
+
+// Function to show map based on active tab
+function showMapViewFromActiveTab() {
+  const mapBtn = document.getElementById('dynamicMapBtn');
+  const source = mapBtn ? mapBtn.getAttribute('data-source') : 'search';
+  showMapView(source);
+}
+
+function showMapView(source) {
+  // Update modal title first
+  const modalTitle = document.getElementById('mapModalLabel');
+  if (source === 'recommendations') {
+    modalTitle.innerHTML = '<i class="fas fa-map-marker-alt me-2"></i>Recommended Jobs Map';
+  } else {
+    modalTitle.innerHTML = '<i class="fas fa-map-marker-alt me-2"></i>All Jobs Map';
+  }
+  
+  // Store source globally
+  mapSource = source;
+  
+  // Show/hide search button based on source
+  const searchBtn = document.getElementById('searchVisibleAreaBtn');
+  if (searchBtn) {
+    if (source === 'search') {
+      searchBtn.style.display = 'inline-block';
+    } else {
+      searchBtn.style.display = 'none';
+    }
+  }
+  
+  // Get or create modal instance
+  const mapModal = document.getElementById('mapModal');
+  let bootstrapModal = bootstrap.Modal.getInstance(mapModal);
+  if (!bootstrapModal) {
+    bootstrapModal = new bootstrap.Modal(mapModal);
+  }
+  
+  // Store source in modal data attribute
+  mapModal.setAttribute('data-map-source', source);
+  
+  // Reset initialization flag
+  mapInitializing = false;
+  
+  // Show modal
+  bootstrapModal.show();
+}
+
+function initializeMap(source) {
+  // Prevent multiple simultaneous initializations
+  if (mapInitializing) {
+    console.log('Map already initializing, skipping...');
+    return;
+  }
+  
+  mapInitializing = true;
+  
+  // Update status
+  const mapInfoElement = document.getElementById('mapInfo');
+  if (mapInfoElement) {
+    mapInfoElement.textContent = 'Initializing map...';
+  }
+  
+  // Clear existing map first
+  if (jobMap) {
+    try {
+      jobMap.remove();
+    } catch (e) {
+      console.warn('Error removing existing map:', e);
+    }
+    jobMap = null;
+    mapMarkers = [];
+  }
+  
+  // Load Leaflet if needed
+  if (!leafletLoaded && typeof L === 'undefined') {
+    loadLeaflet().then(function() {
+      leafletLoaded = true;
+      createMap(source);
+    }).catch(function(error) {
+      console.error('Failed to load Leaflet:', error);
+      mapInitializing = false;
+      if (mapInfoElement) {
+        mapInfoElement.textContent = 'Failed to load map library. Please refresh the page.';
+      }
+    });
+  } else {
+    // Leaflet is already loaded or loading
+    setTimeout(function() {
+      createMap(source);
+    }, 200); // Wait for modal animation
+  }
+}
+
+function loadLeaflet() {
+  return new Promise(function(resolve, reject) {
+    // Load CSS if not already loaded
+    if (!document.querySelector('link[href*="leaflet.css"]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+    }
+    
+    // Load JS if not already loaded
+    const existingScript = document.querySelector('script[src*="leaflet.js"]');
+    if (!existingScript) {
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    } else {
+      // Script already exists, check if loaded
+      if (typeof L !== 'undefined') {
+        resolve();
+      } else {
+        existingScript.addEventListener('load', resolve, { once: true });
+        existingScript.addEventListener('error', reject, { once: true });
+      }
+    }
+  });
+}
+
+function createMap(source) {
+  // Check if map already exists
+  if (jobMap) {
+    console.log('Map already exists, skipping creation');
+    mapInitializing = false;
+    return;
+  }
+  
+  const mapElement = document.getElementById('jobMap');
+  const mapInfoElement = document.getElementById('mapInfo');
+  
+  if (!mapElement) {
+    console.error('Map element #jobMap not found');
+    mapInitializing = false;
+    if (mapInfoElement) {
+      mapInfoElement.textContent = 'Error: Map container not found';
+    }
+    return;
+  }
+  
+  // Ensure element is visible and properly sized
+  mapElement.style.display = 'block';
+  mapElement.style.width = '100%';
+  mapElement.style.height = '100%';
+  mapElement.style.minHeight = '400px';
+  
+  try {
+    if (mapInfoElement) {
+      mapInfoElement.textContent = 'Creating map...';
+    }
+    
+    // Create map instance
+    jobMap = L.map('jobMap', {
+      center: [39.8283, -98.5795],
+      zoom: 4,
+      zoomControl: true
+    });
+    
+    // Add tile layer
+    const tileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19
+    });
+    tileLayer.addTo(jobMap);
+    
+    // Track map bounds changes (zoom/pan)
+    jobMap.on('moveend', function() {
+      updateMapBounds();
+      updateMapBoundsInfo();
+    });
+    
+    jobMap.on('zoomend', function() {
+      updateMapBounds();
+      updateMapBoundsInfo();
+    });
+    
+    // Initial bounds update
+    jobMap.on('load', function() {
+      updateMapBounds();
+      updateMapBoundsInfo();
+    });
+    
+    // Initialize bounds
+    setTimeout(function() {
+      if (jobMap) {
+        jobMap.invalidateSize();
+        updateMapBounds();
+        mapInitializing = false;
+      }
+    }, 400);
+    
+    // Update status
+    if (mapInfoElement) {
+      mapInfoElement.textContent = 'Loading jobs...';
+    }
+    
+  } catch (error) {
+    console.error('Error creating map:', error);
+    mapInitializing = false;
+    if (mapInfoElement) {
+      mapInfoElement.textContent = 'Error: ' + error.message;
+    }
+    return;
+  }
+  
+  // Build API URL with current search parameters if source is search
+  let apiUrl = `/job_board/api/jobs-map/?source=${source}`;
+  if (source === 'search') {
+    const form = document.getElementById('jobSearchForm');
+    if (form) {
+      const formData = new FormData(form);
+      const params = new URLSearchParams();
+      for (const [key, value] of formData.entries()) {
+        if (key === 'skills') {
+          // Handle multiple skills
+          if (!params.has('skills')) {
+            params.set('skills', value);
+          } else {
+            params.append('skills', value);
+          }
+        } else if (value) {
+          params.append(key, value);
+        }
+      }
+      if (params.toString()) {
+        apiUrl += '&' + params.toString();
+      }
+    }
+  }
+  
+  // Get job data from API (only proceed if map was created successfully)
+  if (!jobMap) {
+    console.error('Cannot load jobs: map not initialized');
+    const mapInfoElement = document.getElementById('mapInfo');
+    if (mapInfoElement) {
+      mapInfoElement.textContent = 'Error: Map not initialized';
+    }
+    mapInitializing = false;
+    return;
+  }
+  
+  // Fetch job data from API
+  fetch(apiUrl)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Map API response:', data);
+      console.log(`Total jobs: ${data.total || 0}, Geocoded: ${data.geocoded || 0}, Not geocoded: ${data.not_geocoded || 0}, Remote: ${data.remote || 0}`);
+      
+      let jobsWithLocation = 0;
+      let notGeocodedCount = 0;
+      let remoteCount = 0;
+      const bounds = [];
+      
+      if (data.jobs && data.jobs.length > 0) {
+        // Group jobs by location coordinates
+        const jobsByLocation = {};
+        const validJobs = [];
+        
+        // First, filter and group valid jobs by location
+        data.jobs.forEach(job => {
+          if (job.is_remote) {
+            remoteCount++;
+            console.log(`Skipping remote job ${job.id}: ${job.title} at ${job.location}`);
+            return;
+          }
+          
+          const lat = parseFloat(job.latitude);
+          const lng = parseFloat(job.longitude);
+          
+          if (lat && lng && !isNaN(lat) && !isNaN(lng) && 
+              lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+            // Round coordinates to 4 decimal places (~11 meters) to group nearby jobs
+            const locationKey = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+            
+            if (!jobsByLocation[locationKey]) {
+              jobsByLocation[locationKey] = [];
+            }
+            jobsByLocation[locationKey].push(job);
+            validJobs.push(job);
+            bounds.push([lat, lng]);
+            jobsWithLocation++;
+          } else {
+            console.log(`✗ Skipping job ${job.id} (${job.title}) at "${job.location}": Invalid or missing coordinates`);
+            notGeocodedCount++;
+          }
+        });
+        
+        // Create markers - one per location, with grouped popup if multiple jobs
+        Object.keys(jobsByLocation).forEach(locationKey => {
+          const jobsAtLocation = jobsByLocation[locationKey];
+          const firstJob = jobsAtLocation[0];
+          const lat = parseFloat(firstJob.latitude);
+          const lng = parseFloat(firstJob.longitude);
+          
+          try {
+            let popupContent;
+            if (jobsAtLocation.length > 1) {
+              // Multiple jobs at same location - create scrollable popup
+              popupContent = createGroupedJobPopup(jobsAtLocation);
+            } else {
+              // Single job - regular popup
+              popupContent = createJobPopup(firstJob);
+            }
+            
+            const marker = L.marker([lat, lng], {
+              title: jobsAtLocation.length > 1 ? 
+                `${jobsAtLocation.length} jobs in ${firstJob.location}` : 
+                firstJob.title
+            })
+            .bindPopup(popupContent, {
+              maxWidth: 320,
+              className: 'job-marker-popup',
+              closeOnClick: false,
+              autoClose: false
+            })
+            .on('click', function() {
+              this.openPopup();
+            });
+            
+            // Store the number of jobs at this marker location
+            marker.jobCount = jobsAtLocation.length;
+            
+            // No need for navigation setup - all jobs shown in scrollable list
+            
+            marker.addTo(jobMap);
+            mapMarkers.push(marker);
+            console.log(`✓ Added marker for ${jobsAtLocation.length} job(s) at ${firstJob.location} (${lat}, ${lng})`);
+          } catch (error) {
+            console.error(`✗ Error adding marker for location ${locationKey}:`, error);
+            notGeocodedCount += jobsAtLocation.length;
+          }
+        });
+        
+        console.log(`Marker creation complete: ${jobsWithLocation} markers added, ${notGeocodedCount} skipped`);
+        
+        // Fit map to show all markers, or keep default view
+        if (bounds.length > 0) {
+          if (bounds.length === 1) {
+            jobMap.setView(bounds[0], 10);
+          } else {
+            jobMap.fitBounds(bounds, { padding: [50, 50] });
+          }
+        } else {
+          // No markers but ensure map is visible
+          jobMap.setView([39.8283, -98.5795], 4);
+          jobMap.invalidateSize();
+        }
+        
+         // Update info with detailed counts
+         const mapInfoElement = document.getElementById('mapInfo');
+         // Use total job listings count from API, not just jobs with locations
+         const totalJobListings = data.total || 0;
+         let infoText = `Showing ${totalJobListings} job listing${totalJobListings !== 1 ? 's' : ''}`;
+         if (jobsWithLocation < totalJobListings) {
+           infoText += ` (${jobsWithLocation} on map`;
+           if (notGeocodedCount > 0) {
+             infoText += `, ${notGeocodedCount} not geocoded`;
+           }
+           if (remoteCount > 0) {
+             infoText += `, ${remoteCount} remote`;
+           }
+           infoText += ')';
+         }
+         if (mapInfoElement) {
+           mapInfoElement.textContent = infoText;
+         }
+         
+         // Update bounds info after markers are loaded
+         setTimeout(function() {
+           if (jobMap) {
+             jobMap.invalidateSize();
+             updateMapBounds();
+             updateMapBoundsInfo();
+           }
+         }, 100);
+      } else {
+        // No jobs found - still show map
+        const mapInfoElement = document.getElementById('mapInfo');
+        jobMap.setView([39.8283, -98.5795], 4);
+        jobMap.invalidateSize();
+        if (mapInfoElement) {
+          mapInfoElement.textContent = 'No jobs found to display on map';
+        }
+      }
+      mapInitializing = false;
+    })
+    .catch(error => {
+      console.error('Error loading map data:', error);
+      mapInitializing = false;
+      const mapInfoElement = document.getElementById('mapInfo');
+      // Still show map even on error
+      if (jobMap) {
+        jobMap.setView([39.8283, -98.5795], 4);
+        jobMap.invalidateSize();
+      }
+      if (mapInfoElement) {
+        mapInfoElement.textContent = 'Error loading map data. Please try again.';
+      }
+    });
+}
+
+function createJobPopup(job) {
+  const distanceText = job.distance ? ` (${job.distance} miles away)` : '';
+  // Ensure location is displayed accurately from the job data
+  const locationDisplay = escapeHtml(job.location || 'Location not specified');
+  return `
+    <div style="min-width: 250px; max-width: 300px;">
+      <h6 class="mb-2 text-primary">${escapeHtml(job.title || 'Untitled Job')}</h6>
+      <p class="mb-1"><strong>Location:</strong> ${locationDisplay}${distanceText}</p>
+      <p class="mb-1"><strong>Salary:</strong> $${(job.salary || 0).toLocaleString()}</p>
+      <p class="mb-2"><strong>Skills:</strong> ${escapeHtml(job.skills || 'Not specified')}</p>
+      <div class="d-flex gap-2 mb-2">
+        ${job.is_remote ? '<span class="badge bg-primary">Remote</span>' : '<span class="badge bg-secondary">On-site</span>'}
+        ${job.is_visa_offered ? '<span class="badge bg-info">Visa Offered</span>' : ''}
+      </div>
+      <hr class="my-2">
+      <a href="/job_board/apply/${job.id}/" class="btn btn-success btn-sm w-100">
+        <i class="fas fa-paper-plane me-1"></i>View Job & Apply
+      </a>
+    </div>
+  `;
+}
+
+function createGroupedJobPopup(jobs) {
+  if (jobs.length === 0) return '';
+  if (jobs.length === 1) return createJobPopup(jobs[0]);
+  
+  const locationDisplay = escapeHtml(jobs[0].location || 'Location not specified');
+  const popupId = `job-popup-${jobs[0].id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  
+  const renderJobHTML = (job, index, total) => {
+    const distanceText = job.distance ? ` (${job.distance} miles away)` : '';
+    return `
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="badge bg-info">${index + 1} of ${total}</span>
+        <small class="text-muted">${locationDisplay}</small>
+      </div>
+      <h6 class="mb-2 text-primary">${escapeHtml(job.title || 'Untitled Job')}</h6>
+      <p class="mb-1"><strong>Salary:</strong> $${(job.salary || 0).toLocaleString()}</p>
+      <p class="mb-2"><strong>Skills:</strong> ${escapeHtml(job.skills || 'Not specified')}</p>
+      <div class="d-flex gap-2 mb-2">
+        ${job.is_remote ? '<span class="badge bg-primary">Remote</span>' : '<span class="badge bg-secondary">On-site</span>'}
+        ${job.is_visa_offered ? '<span class="badge bg-info">Visa Offered</span>' : ''}
+      </div>
+      <hr class="my-2">
+      <a href="/job_board/apply/${job.id}/" class="btn btn-success btn-sm w-100">
+        <i class="fas fa-paper-plane me-1"></i>View Job & Apply
+      </a>
+    `;
+  };
+  
+  // Create a scrollable list showing ALL jobs at once
+  let jobsHTML = '';
+  jobs.forEach((job, index) => {
+    const distanceText = job.distance ? ` (${job.distance} miles away)` : '';
+    jobsHTML += `
+      <div class="job-item mb-3 ${index > 0 ? 'border-top pt-3' : ''}">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <h6 class="mb-0 text-primary flex-grow-1">${escapeHtml(job.title || 'Untitled Job')}</h6>
+          <span class="badge bg-secondary ms-2">#${index + 1}</span>
+        </div>
+        <p class="mb-1 small"><strong>Salary:</strong> $${(job.salary || 0).toLocaleString()}</p>
+        <p class="mb-1 small"><strong>Skills:</strong> ${escapeHtml(job.skills || 'Not specified')}</p>
+        <div class="d-flex gap-2 mb-2">
+          ${job.is_remote ? '<span class="badge bg-primary badge-sm">Remote</span>' : '<span class="badge bg-secondary badge-sm">On-site</span>'}
+          ${job.is_visa_offered ? '<span class="badge bg-info badge-sm">Visa</span>' : ''}
+        </div>
+        <a href="/job_board/apply/${job.id}/" class="btn btn-success btn-sm w-100">
+          <i class="fas fa-paper-plane me-1"></i>View & Apply
+        </a>
+      </div>
+    `;
+  });
+  
+  return `
+    <div style="min-width: 300px; max-width: 350px;">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="mb-0 text-primary">
+          <i class="fas fa-map-marker-alt me-1"></i>${locationDisplay}
+        </h6>
+        <span class="badge bg-info">${jobs.length} job${jobs.length !== 1 ? 's' : ''}</span>
+      </div>
+      <div class="jobs-list" style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
+        ${jobsHTML}
+      </div>
+    </div>
+  `;
+}
+
+// Removed setupGroupedPopupNavigation - all jobs now shown in scrollable list
+// This function is no longer needed since we display all jobs at once
+function setupGroupedPopupNavigation_OLD(popup, jobs) {
+  const popupElement = popup._contentNode || popup.getElement();
+  if (!popupElement) {
+    console.error('Popup element not found');
+    return;
+  }
+  
+  // Find the popup content div by data attribute or class
+  let popupContainer = popupElement.querySelector('[data-popup-id]');
+  if (!popupContainer) {
+    // Fallback: find any div with job-popup-content
+    popupContainer = popupElement.querySelector('.job-popup-content')?.parentElement;
+  }
+  
+  if (!popupContainer) {
+    console.error('Popup container not found');
+    return;
+  }
+  
+  const popupId = popupContainer.getAttribute('data-popup-id') || popupContainer.id;
+  if (!popupId) {
+    console.error('Popup ID not found');
+    return;
+  }
+  
+  console.log('Setting up navigation for popup:', popupId, 'with', jobs.length, 'jobs');
+  
+  let currentIdx = 0;
+  const totalJobs = jobs.length;
+  const locationDisplay = escapeHtml(jobs[0].location || 'Location not specified');
+  
+  function renderJob(index) {
+    if (index < 0 || index >= totalJobs) return '';
+    const job = jobs[index];
+    const distanceText = job.distance ? ` (${job.distance} miles away)` : '';
+    return `
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="badge bg-info">${index + 1} of ${totalJobs}</span>
+        <small class="text-muted">${locationDisplay}</small>
+      </div>
+      <h6 class="mb-2 text-primary">${escapeHtml(job.title || 'Untitled Job')}</h6>
+      <p class="mb-1"><strong>Salary:</strong> $${(job.salary || 0).toLocaleString()}</p>
+      <p class="mb-2"><strong>Skills:</strong> ${escapeHtml(job.skills || 'Not specified')}</p>
+      <div class="d-flex gap-2 mb-2">
+        ${job.is_remote ? '<span class="badge bg-primary">Remote</span>' : '<span class="badge bg-secondary">On-site</span>'}
+        ${job.is_visa_offered ? '<span class="badge bg-info">Visa Offered</span>' : ''}
+      </div>
+      <hr class="my-2">
+      <a href="/job_board/apply/${job.id}/" class="btn btn-success btn-sm w-100">
+        <i class="fas fa-paper-plane me-1"></i>View Job & Apply
+      </a>
+    `;
+  }
+  
+  function updatePopup() {
+    const content = popupContainer.querySelector('.job-popup-content');
+    const prevBtn = popupContainer.querySelector('.job-popup-prev');
+    const nextBtn = popupContainer.querySelector('.job-popup-next');
+    
+    if (content) {
+      content.innerHTML = renderJob(currentIdx);
+    }
+    
+    if (prevBtn) {
+      prevBtn.disabled = currentIdx === 0;
+      prevBtn.style.opacity = currentIdx === 0 ? '0.5' : '1';
+      prevBtn.style.cursor = currentIdx === 0 ? 'not-allowed' : 'pointer';
+    }
+    
+    if (nextBtn) {
+      nextBtn.disabled = currentIdx === totalJobs - 1;
+      nextBtn.style.opacity = currentIdx === totalJobs - 1 ? '0.5' : '1';
+      nextBtn.style.cursor = currentIdx === totalJobs - 1 ? 'not-allowed' : 'pointer';
+    }
+  }
+  
+  // Remove existing event listeners if any (by cloning)
+  const prevBtn = popupContainer.querySelector('.job-popup-prev');
+  const nextBtn = popupContainer.querySelector('.job-popup-next');
+  
+  if (prevBtn) {
+    // Remove all existing event listeners by cloning
+    const newPrevBtn = prevBtn.cloneNode(true);
+    prevBtn.parentNode.replaceChild(newPrevBtn, prevBtn);
+    
+    // Add click handler with multiple safeguards
+    newPrevBtn.addEventListener('click', function handlePrev(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      
+      // Prevent map click events
+      if (e.cancelable) {
+        e.cancelBubble = true;
+      }
+      
+      console.log('Previous button clicked, currentIdx:', currentIdx);
+      if (currentIdx > 0) {
+        currentIdx--;
+        updatePopup();
+      }
+      
+      return false;
+    }, true); // Use capture phase
+    
+    // Also prevent mousedown/up events that might close popup
+    newPrevBtn.addEventListener('mousedown', function(e) {
+      e.stopPropagation();
+    }, true);
+    
+    newPrevBtn.addEventListener('mouseup', function(e) {
+      e.stopPropagation();
+    }, true);
+  }
+  
+  if (nextBtn) {
+    // Remove all existing event listeners by cloning
+    const newNextBtn = nextBtn.cloneNode(true);
+    nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
+    
+    // Add click handler with multiple safeguards
+    newNextBtn.addEventListener('click', function handleNext(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      
+      // Prevent map click events
+      if (e.cancelable) {
+        e.cancelBubble = true;
+      }
+      
+      console.log('Next button clicked, currentIdx:', currentIdx);
+      if (currentIdx < totalJobs - 1) {
+        currentIdx++;
+        updatePopup();
+      }
+      
+      return false;
+    }, true); // Use capture phase
+    
+    // Also prevent mousedown/up events that might close popup
+    newNextBtn.addEventListener('mousedown', function(e) {
+      e.stopPropagation();
+    }, true);
+    
+    newNextBtn.addEventListener('mouseup', function(e) {
+      e.stopPropagation();
+    }, true);
+  }
+  
+  // Initial update
+  updatePopup();
+  console.log('Navigation setup complete for popup:', popupId);
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Update map bounds when user zooms/pans
+function updateMapBounds() {
+  if (!jobMap) return;
+  
+  const bounds = jobMap.getBounds();
+  if (bounds) {
+    currentMapBounds = {
+      north: bounds.getNorth(),
+      south: bounds.getSouth(),
+      east: bounds.getEast(),
+      west: bounds.getWest()
+    };
+    console.log('Map bounds updated:', currentMapBounds);
+  }
+}
+
+// Update map info to show bounds status
+function updateMapBoundsInfo() {
+  if (!jobMap || !currentMapBounds) return;
+  
+  // Count total job listings currently visible in bounds (not just markers)
+  let visibleJobListings = 0;
+  mapMarkers.forEach(marker => {
+    const latlng = marker.getLatLng();
+    const lat = latlng.lat;
+    const lng = latlng.lng;
+    
+    // Check if marker is within current bounds
+    if (currentMapBounds.south <= lat && lat <= currentMapBounds.north) {
+      // Handle longitude wrapping
+      if (currentMapBounds.west <= currentMapBounds.east) {
+        if (currentMapBounds.west <= lng && lng <= currentMapBounds.east) {
+          // Add the number of jobs at this marker location
+          visibleJobListings += (marker.jobCount || 1);
+        }
+      } else {
+        if (lng >= currentMapBounds.west || lng <= currentMapBounds.east) {
+          // Add the number of jobs at this marker location
+          visibleJobListings += (marker.jobCount || 1);
+        }
+      }
+    }
+  });
+  
+  const mapInfoElement = document.getElementById('mapInfo');
+  const searchBtn = document.getElementById('searchVisibleAreaBtn');
+  
+  if (mapSource === 'search' && mapInfoElement && searchBtn && searchBtn.style.display !== 'none') {
+    if (visibleJobListings > 0) {
+      mapInfoElement.innerHTML = `<i class="fas fa-info-circle me-1"></i>Showing ${visibleJobListings} job listing${visibleJobListings !== 1 ? 's' : ''} in visible area. Click "Search in Visible Area" to filter.`;
+    } else {
+      mapInfoElement.innerHTML = `<i class="fas fa-info-circle me-1"></i>No jobs in visible area. Zoom/pan to adjust view.`;
+    }
+  }
+}
+
+// Search for jobs in visible map area
+function searchInVisibleArea() {
+  if (!currentMapBounds || !jobMap) {
+    alert('Please zoom into an area on the map first.');
+    return;
+  }
+  
+  // Build URL with map bounds and preserve existing filters
+  const url = new URL(window.location);
+  
+  // Get existing search filters from form
+  const form = document.getElementById('jobSearchForm');
+  if (form) {
+    const formData = new FormData(form);
+    // Preserve existing search parameters
+    for (const [key, value] of formData.entries()) {
+      if (key === 'skills') {
+        // Handle multiple skills
+        if (!url.searchParams.has('skills')) {
+          url.searchParams.set('skills', value);
+        } else {
+          url.searchParams.append('skills', value);
+        }
+      } else if (value && key !== 'active_tab') {
+        url.searchParams.set(key, value);
+      }
+    }
+  }
+  
+  // Add map bounds to URL parameters (these override any existing map bounds)
+  url.searchParams.set('map_north', currentMapBounds.north.toFixed(6));
+  url.searchParams.set('map_south', currentMapBounds.south.toFixed(6));
+  url.searchParams.set('map_east', currentMapBounds.east.toFixed(6));
+  url.searchParams.set('map_west', currentMapBounds.west.toFixed(6));
+  url.searchParams.set('active_tab', 'all_jobs');
+  
+  // Show loading indicator
+  const mapInfoElement = document.getElementById('mapInfo');
+  if (mapInfoElement) {
+    mapInfoElement.textContent = 'Searching jobs in visible area...';
+  }
+  
+  // Close map modal
+  const mapModal = document.getElementById('mapModal');
+  const bootstrapModal = bootstrap.Modal.getInstance(mapModal);
+  if (bootstrapModal) {
+    bootstrapModal.hide();
+  }
+  
+  // Reload page with new filters
+  window.location.href = url.toString();
+}
+
+</script>
+
+{% if user.is_authenticated and user.account_type == 'seeker' %}
+<script>
+// Job seeker specific functionality
+// Form submission handler - switch to all jobs tab when searching
+document.getElementById('jobSearchForm').addEventListener('submit', function(e) {
+  // Set the active tab to all_jobs before form submission
+  document.getElementById('activeTabInput').value = 'all_jobs';
+  showAllJobs();
+});
+
+// Set up map modal event listeners (only once)
+let mapEventListenersAttached = false;
+
+function attachMapEventListeners() {
+  if (mapEventListenersAttached) {
+    return; // Already attached
+  }
+  
+  const mapModal = document.getElementById('mapModal');
+  if (mapModal) {
+    // Initialize map when modal is shown
+    mapModal.addEventListener('shown.bs.modal', function mapShownHandler() {
+      const source = mapModal.getAttribute('data-map-source') || 'search';
+      console.log('Modal shown, initializing map with source:', source);
+      initializeMap(source);
+    });
+    
+    // Clean up map when modal is hidden
+    mapModal.addEventListener('hidden.bs.modal', function mapHiddenHandler() {
+      console.log('Modal hidden, cleaning up map');
+      mapInitializing = false;
+      if (jobMap) {
+        try {
+          jobMap.remove();
+        } catch (e) {
+          console.warn('Error removing map:', e);
+        }
+        jobMap = null;
+        mapMarkers = [];
+      }
+      // Clear map info
+      const mapInfo = document.getElementById('mapInfo');
+      if (mapInfo) {
+        mapInfo.textContent = '';
+      }
+    });
+    
+    mapEventListenersAttached = true;
+    console.log('Map event listeners attached');
+  }
+}
+
+// Check URL parameters on page load to determine which tab should be active
+document.addEventListener('DOMContentLoaded', function() {
+  // Attach map event listeners first
+  attachMapEventListeners();
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  const activeTab = urlParams.get('active_tab');
+  
+  // Check if there are any search parameters, if so show all jobs (search) tab
+  const hasSearchParams = urlParams.has('title') || urlParams.has('location') || 
+                          urlParams.has('salary_range') || urlParams.has('work_type') || 
+                          urlParams.has('skills') || urlParams.has('visa_sponsorship') || 
+                          urlParams.has('distance');
+  
+  if (activeTab === 'all_jobs' || hasSearchParams) {
+    showAllJobs();
+  } else {
+    // Default to recommendations
+    showRecommendations();
+  }
+  
+  // Ensure map button is visible
+  const mapBtn = document.getElementById('dynamicMapBtn');
+  if (mapBtn) {
+    mapBtn.style.display = 'block';
+  }
+});
+</script>
+{% endif %}
+{% endblock content %}

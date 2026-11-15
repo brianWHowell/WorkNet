@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow-md border-0">
+        <div class="card-header text-center py-4">
+          <img src="{% static 'img/logo.svg' %}" alt="WorkNet Logo" height="60" class="mb-3">
+          <h2 class="mb-0 text-white">Welcome Back</h2>
+          <p class="text-white-50 mb-0 small">Sign in to your WorkNet account</p>
+        </div>
+        <div class="card-body p-4">
+          {% if template_data.error %}
+          <div class="alert alert-danger shadow-sm" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ template_data.error }}
+          </div>
+          {% endif %}
+          <form method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="username" class="form-label">
+                <i class="fas fa-user me-2 text-primary"></i>Username
+              </label>
+              <input id="username" type="text" name="username" required
+                autocomplete="username" class="form-control" placeholder="Enter your username">
+            </div>
+            <div class="mb-4">
+              <label for="password" class="form-label">
+                <i class="fas fa-lock me-2 text-primary"></i>Password
+              </label>
+              <input id="password" type="password" name="password" required
+                autocomplete="current-password" class="form-control" placeholder="Enter your password">
+            </div>
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-sign-in-alt me-2"></i>Login
+              </button>
+            </div>
+          </form>
+          <hr class="my-4">
+          <div class="text-center">
+            <p class="mb-0 text-muted small">Don't have an account?</p>
+            <a href="{% url 'accounts.signup' %}" class="btn btn-outline-primary btn-sm mt-2">
+              <i class="fas fa-user-plus me-2"></i>Sign Up
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,5 @@
+<svg width="200" height="100" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Transparent background -->
+  <!-- Monoline WN -->
+  <path d="M40 20 L40 80 L70 50 L100 80 L100 20 L140 80 L140 20" fill="none" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+</svg>
